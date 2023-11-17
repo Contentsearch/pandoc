@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 使用命令  pandoc input.md -o /d/tempdoc/output.html --template=/d/document/temp.html --toc   -->
+    <meta charset="UTF-8">
+    <title>$pagetitle$</title>
+    <!-- icon 来源 https://www.iconfinder.com/search/icons?family=free-icon-set -->
+    <link rel="icon"
+          href="https://cdn3.iconfinder.com/data/icons/education-209/64/plane-paper-toy-science-school-512.png"
+          type="image/x-icon">
+    <!-- 引入 Highlight.js 核心库 主题参考：https://highlightjs.org/examples -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- and it's easy to individually load additional languages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/panda-syntax-dark.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <script>hljs.initLineNumbersOnLoad();</script>
+
+    <style>
+        /* 表格样式 */
+        .markdown-content > table {
+            width: 100%; /* 表格宽度占满父容器 */
+            border-collapse: collapse; /* 合并表格边框 */
+            font-size: 14px; /* 字体大小 */
+        }
+
+        /* 表格单元格样式 */
+        .markdown-content > table td, .markdown-content > table th {
+            border: 1.5px solid #d2d0dd; /* 单元格边框 */
+            padding: 8px; /* 单元格内边距 */
+            text-align: left; /* 文字左对齐 */
+            color: black;
+            background-color: #faf2f6; /* 单元格背景色 */
+        }
+
+        /* 左侧固定目录样式 */
+        .toc {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 180px; /* 左侧目录宽度 */
+            height: 100%; /* 充满整个屏幕高度 */
+            overflow-y: auto; /* 如果内容超出高度，显示滚动条 */
+            padding: 20px;
+            /*background-color: #FFFFF; !* 背景色 *!*/
+            border-right: 2px solid #ddd; /* 添加分割线 */
+            color: #d1d8e0; /* 默认文字颜色 */
+        }
+
+        /*目录*/
+        .toc a {
+            display: block; /* 将链接元素改为块级元素 */
+            width: 150px; /* 设置链接元素的宽度 */
+            color: #000000;
+            /* 鼠标悬停时整个块（链接）变色 */
+            transition: background-color 0.3s; /* 添加颜色变化的过渡效果 */
+            font-weight: bold; /* 设置链接文字加粗 */
+        }
+
+        /* 鼠标指向时变为灰色 */
+        .toc a:hover {
+            color: #2ecc71 !important; /* 鼠标悬停时的颜色 */
+            text-decoration: underline; /* 悬停时添加下划线效果 */
+            background-color: #F8FCF3; /* 鼠标悬停时链接元素的背景色 */
+        }
+
+        /* 点击时变为绿色 */
+        .toc a :active {
+            color: #2ecc71 !important; /* 点击时的颜色 */
+        }
+
+        /* 调整一级和二级目录之间的左侧距离 */
+        .toc ul {
+            padding-left: 8px !important; /* 二级目录的左侧距离 */
+            padding-top: 1px
+        }
+
+        /* 调整一级和二级目录之间的距离 */
+        .toc li {
+            padding-top: 2px
+        }
+
+        /* 内容 */
+        body {
+            font-family: Arial, sans-serif;
+            /*font-family: blinkmacsystemfont;*/
+            max-width: 800px; /* 自适应屏幕大小 */
+            margin: 0 auto; /* 水平居中 */
+            padding: 20px;
+            background-color: white; /* 默认背景色 */
+            color: black; /* 默认文字颜色 */
+            transition: background-color 0.4s ease-in-out, color 0.4s ease-in-out;
+        }
+
+        /* 复制按钮 */
+        .copy-btn {
+            background-color: rgba(197, 217, 227, 0.99);
+            color: white;
+            border: none;
+            padding: 5px 6px;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 1;
+            opacity: 0.6; /* 设置透明度 */
+        }
+
+        /* 复制按钮 */
+        .copy-btn:hover {
+            background-color: #83a2dc;
+            opacity: 1; /* 悬停时完全不透明 */
+        }
+
+        /* 强调代码块的样式 */
+        pre {
+            position: relative;
+            margin-top: 32px;
+            margin: 1em 0;
+            /*padding: 1em;*/
+            overflow-x: auto;
+            border-radius: 5px;
+            background-color: #F7F7F7; /* 背景色 */
+            /*border: 1px solid #d5ebe1;  边框 */
+            border-left: 5px solid #a6a5c4;
+            font-family: 'Consolas', monospace; /* 使用等宽字体 */
+        }
+
+        pre > code {
+            border: 0;
+            display: inline;
+            max-width: initial;
+            padding: 0;
+            margin: 0;
+            overflow: initial;
+            line-height: inherit;
+            font-size: .85em;
+            white-space: pre;
+            background: 0 0;
+
+        }
+
+        code, pre {
+            /*border-radius: 3px;*/
+            background-color: rgba(234, 229, 229, 0.94);
+            color: inherit;
+        }
+
+        /* 代码块中的代码样式 */
+        code[class*="language-"] {
+            font-family: Consolas, monospace;
+            font-size: 0.8em;
+        }
+
+        /* for block of numbers 代码块 中行间距等调整 */
+        pre code td.hljs-ln-numbers {
+            text-align: center;
+            color: #9c9c9c;
+            /*border-right: 0.5px solid #9c9c9c;*/
+            vertical-align: top;
+            padding-right: 0.6rem;
+            border: none;
+        }
+
+        /* 修改滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 12px; /* 滚动条宽度 */
+            height: 9px;
+            opacity: 0.5; /* 设置透明度 */
+            /*border-radius: 8px; !* 滚动条边框圆角 *!*/
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #100e0e; /* 滚动条轨道的背景颜色 */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #484948F9; /* 滚动条的颜色 */
+            border-radius: 4px; /* 滚动条的圆角 */
+            opacity: 0.6; /* 悬停时完全不透明 */
+            transition: background-color 1s; /* 添加颜色变化的过渡效果 */
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #abadad;
+            opacity: 1; /* 悬停时完全不透明 */
+        }
+
+        /* 提示框样式 */
+        .note, .info {
+            background-color: #E6F0FC; /* 淡蓝色背景 */
+            color: black;
+            border-left: 5px solid #4d8cf0; /* 左边框样式 */
+            padding: 12px;
+            margin-bottom: 10px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            border-radius: 4px; /* 滚动条的圆角 */
+        }
+
+        .warning {
+            color: black;
+            background-color: #FDF1E5; /* 黄色背景 */
+            border-left: 5px solid #eccc68; /* 左边框样式 */
+            padding: 16px;
+            margin-bottom: 10px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            border-radius: 4px; /* 滚动条的圆角 */
+        }
+
+        .tip {
+            color: black;
+            background-color: #E5F8F8; /* 黄色背景 */
+            border-left: 5px solid #E5F8F8; /* 左边框样式 */
+            padding: 16px;
+            margin-bottom: 10px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            border-radius: 4px; /* 滚动条的圆角 */
+        }
+
+        /* 夜间模式样式 */
+        body.night-mode {
+            background-color: #282C34; /* 深色背景 */
+            color: white; /* 白色文字 */
+        }
+
+        /* 夜间模式样式 代码块 */
+        body.night-mode pre {
+            background-color: #535c68; /* 夜间模式下的代码块背景色 */
+            color: white; /* 代码块文字颜色 */
+            border-left: 5px solid #95afc0;
+            font-family: 'Consolas', monospace; /* 使用等宽字体 */
+        }
+
+        /* 夜间模式样式 toc目录 */
+        body.night-mode .toc a {
+            color: white; /* 代码块文字颜色 */
+        }
+
+        /* 夜间模式样式 鼠标指向时变为灰色 */
+        body.night-mode .toc a:hover {
+            color: #2ecc71 !important; /* 鼠标悬停时的颜色 */
+            text-decoration: underline; /* 悬停时添加下划线效果 */
+            background-color: #34495e; /* 鼠标悬停时链接元素的背景色 */
+        }
+
+        /* 切换开关按钮样式 */
+        .toggle {
+            position: fixed;
+            top: 40px; /* 距离顶部的距离 */
+            right: 40px; /* 距离右侧的距离 */
+        }
+
+        .toggle input {
+            display: none;
+        }
+
+        /* 滑块样式 */
+        .slider {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            background-color: grey;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.4s ease-in-out;
+        }
+
+        /* 太阳和月亮图标 */
+        .slider::before {
+            position: absolute;
+            content: "\1F31E"; /* 太阳图标 */
+            font-size: 14px;
+            left: 2px;
+            bottom: 2px;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        /* 夜间模式下太阳图标隐藏，月亮图标显示 */
+        input:checked + .slider::before {
+            content: "\1F319"; /* 月亮图标 */
+            transform: translateX(20px);
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3; /* 调整按钮背景颜色 */
+        }
+
+        /* 全局图片 大小限制 */
+        img {
+            padding-top: 10px;
+            max-width: 800px;
+            height: auto;
+            margin-right: 5px;
+            text-align: center;
+        }
+
+        /* 作者信息样式 */
+        .author-info {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            display: inline-flex;
+            align-items: center;
+            z-index: 1; /* 提高层叠顺序 */
+        }
+
+        /* 图片样式 */
+        .author-info img {
+            width: 30px;
+            height: auto;
+            margin-right: 5px;
+        }
+
+        h1, h2, h3, h4 {
+            font-weight: 400;
+            margin-top: 1em;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: Georgia, Palatino, serif;
+        }
+
+        h1, h2 {
+            border-bottom: 1px solid #EFEAEA;
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 42px;
+            line-height: 54px;
+        }
+
+        h2 {
+            font-size: 36px;
+            line-height: 42px;
+        }
+
+        h3 {
+            color: #70a1ff;
+            font-size: 26px;
+            line-height: 30px;
+        }
+
+        h4 {
+            color: #2E80F2;
+            font-size: 22px;
+            line-height: 26px;
+        }
+
+        h5 {
+            font-size: 19px;
+            list-style: 23px;
+        }
+
+        /*h1 {*/
+        /*    font-size: 40px;*/
+        /*    font-weight: 700;*/
+        /*    line-height: 48px;*/
+        /*    padding-bottom: 2px;*/
+        /*    border-bottom: 2px solid rgba(122, 69, 116, 0.97); !* 添加底部边框，黑色，宽度为1像素 *!*/
+        /*}*/
+        /* a标签 */
+        a {
+            color: #0099ff;
+            margin: 0;
+            padding: 0;
+            vertical-align: baseline;
+        }
+
+        a:hover {
+            text-decoration: none;
+            color: #ff6600;
+        }
+
+        a:visited {
+            /*color: purple;*/
+        }
+
+        /* 文字居中 */
+        .title {
+            text-align: center;
+        }
+
+        p {
+            color: #dd6b7b;
+        }
+
+    </style>
+</head>
+<body class="day-mode">
+<label class="toggle">
+    <input type="checkbox" onclick="toggleMode()">
+    <span class="slider"></span>
+</label>
+<h1 class="title">$pagetitle$</h1>
+<title>$pagetitle$</title>
+<link rel="icon" href="https://cdn3.iconfinder.com/data/icons/education-209/64/plane-paper-toy-science-school-512.png"
+      type="image/x-icon">
+<div class="content">
+    <div class="toc">
+        $toc$
+        <!-- 添加作者信息 -->
+        <div class="author-info">
+            <span>Author: iPhase2</span>
+            <img width="64" height="64" src="https://img.icons8.com/small/64/737373/hand-with-pen.png"
+                 alt="hand-with-pen"/>
+            <span>$date$</span>
+        </div>
+
+    </div>
+
+    Markdown 转换的内容
+    <div class="markdown-content">
+        $body$
+    </div>
+</div>
+
+
+<!-- ------------------           -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var codeBlocks = document.querySelectorAll(".markdown-content p code");
+        codeBlocks.forEach(function (codeBlock) {
+            // 获取每个代码行的文本内容
+            var codeText = codeBlock.textContent.trim();
+            // 用<code>标签包裹代码行
+            var newElement = document.createElement("code");
+            newElement.textContent = codeText;
+            // 替换原始的<code>标签
+            codeBlock.parentNode.replaceChild(newElement, codeBlock);
+        });
+    });
+    // copy按钮
+    document.addEventListener('DOMContentLoaded', function () {
+        const codeBlocks = document.querySelectorAll('pre > code');
+        codeBlocks.forEach(function (codeBlock) {
+            const copyButton = document.createElement('button');
+            copyButton.className = 'copy-btn';
+            copyButton.textContent = 'Copy';
+            codeBlock.parentNode.insertBefore(copyButton, codeBlock.nextSibling);
+
+            copyButton.addEventListener('click', function () {
+                const textArea = document.createElement('textarea');
+                textArea.value = codeBlock.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                // 这里是按钮点击后的一系列操作
+                copyButton.style.backgroundColor = '#2ecc71'; // 设置按钮点击后的颜色
+                // 按钮被点击后，1秒后执行恢复原始样式的操作
+                setTimeout(function () {
+                    copyButton.style.backgroundColor = 'rgba(197, 217, 227, 0.99)';
+                }, 2000); // 这里设置延迟的时间，单位为毫秒（这里是5秒）
+            });
+        });
+    });
+
+
+    // 处理 plantuml
+    document.addEventListener("DOMContentLoaded", function () {
+        const plantUmlBlocks = document.querySelectorAll(".plantuml");
+        plantUmlBlocks.forEach((block) => {
+            // const textContent = block.textContent;
+            // debugger
+            // const codeP = document.querySelector("code");
+            const code = block.textContent.trim();
+            const stringPromise = convertToHex(code);
+            console.log("====> " + stringPromise)
+            const apiUrl = 'https://www.plantuml.com/plantuml/png/~h' + stringPromise;
+            console.log("====> " + apiUrl)
+            const img = document.createElement('img');
+            img.src = apiUrl;
+            img.width = 800;
+            block.parentNode.replaceChild(img, block);
+        });
+    });
+
+    // 处理 plantuml
+    function convertToHex(str) {
+        const encoder = new TextEncoder();
+        const utf8Bytes = encoder.encode(str);
+        const hexString = Array.from(utf8Bytes)
+            .map(byte => ('0' + byte.toString(16).toUpperCase()).slice(-2))
+            .join(''); // 将字节连接为一个字符串
+        console.log("===> convertToHex:" + hexString)
+        return hexString;
+    }
+
+
+    // -------------------------------------------------
+    // 夜间模式切换
+    function toggleMode() {
+        const body = document.body;
+        body.classList.toggle('day-mode');
+        body.classList.toggle('night-mode');
+    }
+
+    // JS 监听页面滚动事件，固定开关按钮
+    window.onscroll = function () {
+        const toggleButton = document.querySelector('.toggle');
+        if (toggleButton) {
+            if (window.pageYOffset > 100) { // 滚动多少距离后按钮固定
+                toggleButton.style.top = '60px'; // 按钮固定位置
+            } else {
+                toggleButton.style.top = '80px'; // 按钮初始位置
+            }
+        }
+    };
+
+    // 查找所有的 p 标签并为其添加类名
+    const paragraphs = document.querySelectorAll('blockquote > p');
+    paragraphs.forEach(paragraph => {
+        let text = paragraph.textContent;
+        if (text.includes('[!note]')) {
+            paragraph.classList.add('note');
+            text = text.replace(/\[!note\]/g, ''); // 去除 '[!note]' 标记
+        } else if (text.includes('[!warning]')) {
+            paragraph.classList.add('warning');
+            text = text.replace(/\[!warning\]/g, ''); // 去除 '[!warning]' 标记
+        } else if (text.includes('[!tip]')) {
+            paragraph.classList.add('tip');
+            text = text.replace(/\[!tip\]/g, ''); // 去除 '[!tip]' 标记
+        } else if (text.includes('[!info]')) {
+            paragraph.classList.add('info');
+            text = text.replace(/\[!info\]/g, ''); // 去除 '[!info]' 标记
+        }
+        paragraph.textContent = text.trim(); // 设置处理后的文本内容
+        // 可根据需要添加更多的条件判断和对应的样式类
+    });
+
+</script>
+</body>
+</html>
